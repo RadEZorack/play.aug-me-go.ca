@@ -3,9 +3,6 @@
   "version": "0.1.0",
   "description": "Node.JS",
   "dependencies": {
-    "express": "4.15.2",
-    "socket.io": "1.7.3",
-    "axios": "0.20.0",
     "firebase": "9.6.1",
     "firebase-tools": "10.0.1"
   },
