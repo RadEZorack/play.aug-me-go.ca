@@ -1,7 +1,7 @@
 {
-  "name": "mfb-socketio",
+  "name": "play.aug-me-go.ca",
   "version": "0.1.0",
-  "description": "Node.JS handeling socket.io traffic",
+  "description": "Node.JS",
   "dependencies": {
     "express": "4.15.2",
     "socket.io": "1.7.3",
@@ -10,6 +10,6 @@
     "firebase-tools": "10.0.1"
   },
   "scripts": {
-    "start": "node src/index.js"
+    "build": "npm install"
   }
 }
