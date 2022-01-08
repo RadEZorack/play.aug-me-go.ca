@@ -2,6 +2,137 @@ var entities = {}
 var my_position = undefined
 // Instantiate a loader
 var gltf_loader = new THREE.GLTFLoader();
+const { RTCPeerConnection, RTCSessionDescription, RTCIceCandidate } = window;
+
+async function connectWebRTC(uid){
+    console.log('connectWebRTC')
+    var configuration = {
+        offerToReceiveAudio: true,
+        offerToReceiveVideo: true,
+        iceServers: [     // Information about ICE servers - Use your own!
+          {
+            'urls':'stun:stun.l.google.com:19302'
+          },{
+            'urls':'stun:stun1.l.google.com:19302'
+          },{
+            'urls':'stun:stun2.l.google.com:19302'
+          },{
+            'urls':'stun:stun3.l.google.com:19302'
+          },{
+            'urls':'stun:stun4.l.google.com:19302'
+          }
+        ]};
+      var peerConnection =  new RTCPeerConnection(configuration);
+  
+      peerConnection.ontrack = function(event) {
+        console.log("received media", event)
+       const remoteVideo = document.getElementById(`remote-video-${uid}`);
+       remoteVideo.onloadedmetadata = function(e) {
+          remoteVideo.play();
+        };
+       console.log(remoteVideo)
+       if (remoteVideo) {
+         remoteVideo.srcObject = event.streams[0];
+         console.log(remoteVideo, remoteVideo.srcObject)
+  
+       }
+      };
+      console.log(peerConnection)
+  
+      async function callUser() {
+        console.log("calling:", uid)
+        // socket.emit("request-media", {
+        //      to: uid,
+        //      from: myUid
+        //    });
+
+        await database.ref(`/userTo/${uid}/userFrom/${myUid}`).update({
+            to: uid,
+            from: myUid,
+            offer: null,
+            answer: null,
+        });
+        //  const offer = await peerConnection.createOffer({offerToReceiveAudio: true,
+        // offerToReceiveVideo: true,});
+        //  await peerConnection.setLocalDescription(new RTCSessionDescription(offer));
+        // console.log("calling user")
+        //  socket.emit("call-user", {
+        //    offer,
+        //    name: urlParams.get('name')
+        //  });
+      }
+      callUser()
+  
+    //   socket.on("call-made", async data => {
+        database.ref(`/userTo/${myUid}/userFrom/${uid}`).on('value', async (data) =>{
+            data = data.val()
+            if (data.offer != null && data.answer == null){
+                console.log("call-made")
+                await database.ref(`/userTo/${myUid}/userFrom/${uid}/`).update({
+                    offer: null,
+                    answer: null
+                  })
+                console.log("data.offer", data)
+                await peerConnection.setRemoteDescription(
+                    new RTCSessionDescription(data.offer)
+                );
+                let iceCount = 0;
+                peerConnection.onicecandidate = function(event) {
+                    console.log("onicecandidate", event)
+                    if (event.candidate) {
+                        // Send the candidate to the remote peer
+                        database.ref(`/userTo/${uid}/userFrom/${myUid}/userToCandidate/${iceCount}`).set({
+                            candidate: event.candidate,
+                        })
+                        iceCount += 1;
+                        // socket.emit("send-candidate", {
+                        //     candidate: event.candidate,
+                        //     to: data.socket
+                        // });
+                    } else {
+                    // All ICE candidates have been sent
+                    }
+                }
+                const answer = await peerConnection.createAnswer();
+                await peerConnection.setLocalDescription(
+                    new RTCSessionDescription(answer)
+                );
+                // socket.emit("request-media", {
+                //   to: data.socket
+                // });
+                database.ref(`/userTo/${uid}/userFrom/${myUid}/`).update({
+                    to: uid,
+                    from: myUid,
+                    offer: null,
+                    answer: peerConnection.localDescription
+                });
+            }
+            
+       })
+       // peerConnection.icegatheringstatechange = function(event) {
+       //  console.log(event)
+       // }
+  
+       // if (!isAlreadyCalling) {
+       //   callUser(data.socket);
+       //   isAlreadyCalling = true;
+       // }
+       
+        //    socket.emit("make-answer", {
+        //      ,
+        //      to: data.socket
+        //    });
+  
+        //   socket.on("receiving-candidate", data => {
+        database.ref(`/userTo/${myUid}/userFrom/${uid}/userToCandidate/`).on('child_added', (data) => {
+            data = data.val();
+            console.log("receiving-candidate", data)
+          let candidate = new RTCIceCandidate(data.candidate);
+          peerConnection.addIceCandidate(candidate,
+            function(){console.log('success')},
+            function(error){console.log('error',error)})
+        })
+}
 
 // // Optional: Provide a DRACOLoader instance to decode compressed mesh data
 var dracoLoader = new THREE.DRACOLoader();
@@ -32,7 +163,6 @@ function update_entity(entity_data){
     }else if (!(entity_key in entities)){
         entities[entity_key] = "loading"
         console.log("new entity", entity_key, entities)
-        name = entity_key.split(":")[1]
         const page = create3dPage(
             // 1.5m wide
           300, 300,
@@ -40,12 +170,16 @@ function update_entity(entity_data){
           new THREE.Vector3(x, y+1.2, z),
           new THREE.Vector3(0, ry, 0),
           "",
-        //   webcamUrl+'?name='+name,
-          "");
+          `<div class="video-container" style="width: 300px; height: 300px; background-color: black;">
+            <div style="position: absolute; top: 5px; left: 50%; transform: translate(-50%, 0);">Temporary</div>
+            <video autoplay class="remote-video" id="remote-video-${entity_key}" style="max-width: 100%; max-height: 100%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></video>
+          </div>`
+          );
         // entities[entity_key] = {
         //             'plane': page.plane,
         //             'cssobject': page.cssObject
         // }
+        connectWebRTC(entity_key);
 
         gltf_loader.load(
             // resource URL

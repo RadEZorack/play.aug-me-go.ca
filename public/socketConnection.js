@@ -23,6 +23,7 @@ function send_message_que(){
             'rz': window.camera.rotation.z,
             'time': now.getTime(),
         })
+        
     }
 
     send_message_que_xhr = setTimeout(function(){

@@ -31,12 +31,24 @@ admin.initializeApp();
 // });
 
 exports.usermoderator = functions.database.ref('/userInput/{Uid}').onWrite((change) => {
-  const message = change.after.val();
+  const before = change.before.val();
+  const after = change.after.val();
   // TODO: sanitize
   // Let surrounding neighbours know.
   // TODO: implement chunking
-  admin.database().ref('chunkOutput/123/userOutput/'+message.uid).set(message);
+  if (after == false){
+    admin.database().ref('chunkOutput/123/userOutput/'+before.uid).remove();
+  }else{
+    admin.database().ref('chunkOutput/123/userOutput/'+after.uid).set(after);
+  }
 })
+
+// exports.userremover = functions.database.ref('/userInput/{Uid}').onDelete((data) => {
+//   admin.database().ref('chunkOutput/123/userOutput/'+data.uid).remove();
+// })
+
+// exports.userconnector = functions.database.ref('/userTo/{UidTo}/userFrom/{UidFrom}').onWrite((change) => {
+// })
 
 // var room_name = "lobby"
 // var sockets = {}
