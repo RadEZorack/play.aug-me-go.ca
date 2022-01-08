@@ -180,7 +180,7 @@ function myInit() {
 
   redrawObjects();
 
-  sendPlayerData()
+  // sendPlayerData()
 
   animate();
 

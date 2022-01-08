@@ -309,6 +309,8 @@
       let my_name = null;
       let myUid = null;
       let myAccessToken = null;
+      let database = null;
+      let functions = null;
       document.addEventListener('DOMContentLoaded', function() {
         // const loadEl = document.querySelector('#load');
         // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
@@ -364,6 +366,10 @@
             myAccessToken = user.multiFactor.user.accessToken;
 
             $("#myDisplayName").html(my_name);
+            database = firebase.database();
+            functions = firebase.functions();
+            send_message_que();
+            initDatbaseRefs();
             $("#loader").hide();
             
           }).catch((error) => {
@@ -403,7 +409,7 @@
       const wood1Url = "/assets/wood_1.jpg";
       const bark1Url = "/assets/bark_1.jpg";
       const leaves1Url = "/assets/leaves_1.jpg";
-      const cesiumManUrl = "/library/cesium_man/CesiumMan.gltf";
+      const cesiumManUrl = "/assets/cesium_man/CesiumMan.gltf";
       const nodeUrl = "";
       const webcamUrl = "/webcam.html";
       const room_name = "Lobby";
@@ -415,6 +421,7 @@
 
     <!-- Scripts -->
     <script src="/globals.js"></script>
+    <script src="/initDatbaseRefs.js"></script>
     <script src="/parseScript.js"></script>
     <script src="/webpage3d.js"></script>
     <script src="/entity.js"></script>

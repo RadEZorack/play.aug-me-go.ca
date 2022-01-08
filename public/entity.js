@@ -8,7 +8,7 @@ var dracoLoader = new THREE.DRACOLoader();
 dracoLoader.setDecoderPath( "{% static 'chat/js/threejs/examples/js/libs/draco/' %}" );
 gltf_loader.setDRACOLoader( dracoLoader );
 function update_entity(entity_data){
-    let entity_key = entity_data['entity_key']
+    let entity_key = entity_data['uid']
     let x = entity_data['x']
     let y = entity_data['y']
     let z = entity_data['z']
@@ -39,7 +39,8 @@ function update_entity(entity_data){
           0.005,
           new THREE.Vector3(x, y+1.2, z),
           new THREE.Vector3(0, ry, 0),
-          webcamUrl+'?name='+name,
+          "",
+        //   webcamUrl+'?name='+name,
           "");
         // entities[entity_key] = {
         //             'plane': page.plane,
@@ -171,7 +172,7 @@ function update_entity(entity_data){
 }
 
 function remove_entity(entity_data){
-    let entity_key = entity_data['entity_key']
+    let entity_key = entity_data['uid']
     console.log("removing:", entity_key, entities[entity_key])
     if (entities[entity_key] && !(entities[entity_key] == "loading")){
         gltf = entities[entity_key]['gltf']
