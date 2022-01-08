@@ -68,7 +68,6 @@
             border: 0px;
         }
 
-
     </style>
     <!-- Global site tag (gtag.js) - Google Ads: 441236051 -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=AW-441236051"></script>
@@ -83,7 +82,7 @@
     <!-- update the version number as needed -->
     <script defer src="/__/firebase/9.6.1/firebase-app-compat.js"></script>
     <!-- include only the Firebase features as you need -->
-    <!-- <script defer src="/__/firebase/9.6.1/firebase-auth-compat.js"></script> -->
+    <script defer src="/__/firebase/9.6.1/firebase-auth-compat.js"></script>
     <script defer src="/__/firebase/9.6.1/firebase-database-compat.js"></script>
     <script defer src="/__/firebase/9.6.1/firebase-firestore-compat.js"></script>
     <script defer src="/__/firebase/9.6.1/firebase-functions-compat.js"></script>
@@ -96,7 +95,7 @@
       initialize the SDK after all desired features are loaded, set useEmulator to false
       to avoid connecting the SDK to running emulators.
     -->
-    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
+    <script defer src="/__/firebase/init.js"></script>
 
     <style media="screen">
       body { background: #ECEFF1; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
@@ -115,16 +114,17 @@
   </head>
   <body>
     <div id="hud">
-      <span class="blox" style="font-size: 2em; text-align: center; position: absolute; top: 5px; left: 50%; transform: translate(-50%, 0); z-index: 10;">TrIxEl VeRsE</span>
+      <div id="loader" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 100; font-size: 100px; outline-width: medium; outline-color: white; outline-style: dotted; background-color: white;">Loading...</div>
+      <!-- <span class="blox" style="font-size: 2em; text-align: center; position: absolute; top: 5px; left: 50%; transform: translate(-50%, 0); z-index: 10;">TrIxEl VeRsE</span>
       <div style="position: absolute; left: 50%; top: 5vh; transform: translate(-50%, 0); z-index: 10;">
           <button onclick="startVideo();" id="startButton" style="background-color:green;">Record</button>
           <button onclick="stopVideo();" id="stopButton" style="background-color: red; display: none;">Stop</button>
-      </div>
+      </div> -->
       <div style="position: absolute; top: 5px; right: 5px; z-index: 10;">
-        <span class="blox" style="font-size: 2em;" id="myDisplayName"></span>
+        <span style="font-size: 2em;" id="myDisplayName"></span>
       </div>
-      <video autoplay class="local-video" id="local-video-1" style="background: black; width: 15vw; height: 15vw; max-height: 15vh; max-width: 15vh; position: absolute; top: 60px; left: 5px; z-index: 10;"></video>
-      <video autoplay class="local-video" id="local-video-2" style="background: black; width: 15vw; height: 15vw; max-height: 15vh; max-width: 15vh; position: absolute; top: 60px; right: 5px; z-index: 10;"></video>
+      <!-- <video autoplay class="local-video" id="local-video-2" style="background: black; width: 15vw; height: 15vw; max-height: 15vh; max-width: 15vh; position: absolute; top: 60px; left: 5px; z-index: 10;"></video> -->
+      <video autoplay class="local-video" id="local-video-1" style="background: black; width: 15vw; height: 15vw; max-height: 15vh; max-width: 15vh; position: absolute; top: 60px; right: 5px; z-index: 10;"></video>
       <div id="ui" ref="ui">
         <!-- Rotation -->
         <div
@@ -305,6 +305,82 @@
       </div>
     </div>
 
+    <script>
+      let my_name = null;
+      let myUid = null;
+      let myAccessToken = null;
+      document.addEventListener('DOMContentLoaded', function() {
+        // const loadEl = document.querySelector('#load');
+        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+        // // The Firebase SDK is initialized and available here!
+        //
+        // firebase.auth().onAuthStateChanged(user => { });
+        // firebase.database().ref('/path/to/ref').on('value', snapshot => { });
+        // firebase.firestore().doc('/foo/bar').get().then(() => { });
+        // firebase.functions().httpsCallable('yourFunction')().then(() => { });
+        // firebase.messaging().requestPermission().then(() => { });
+        // firebase.storage().ref('/path/to/ref').getDownloadURL().then(() => { });
+        // firebase.analytics(); // call to activate
+        // firebase.analytics().logEvent('tutorial_completed');
+        // firebase.performance(); // call to activate
+        //
+        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+        let app = null;
+        try {
+          app = firebase.app();
+          let features = [
+            'auth', 
+            'database', 
+            'firestore',
+            'functions',
+            'messaging', 
+            'storage', 
+            'analytics', 
+            'remoteConfig',
+            'performance',
+          ].filter(feature => typeof app[feature] === 'function');
+          console.log(`Firebase SDK loaded with ${features.join(', ')}`);
+        } catch (e) {
+          console.error(e);
+          loadEl.textContent = 'Error loading the Firebase SDK, check the console.';
+          return
+        }
+
+        // This reqiures the user to log in every single time.
+        firebase.auth()
+          .getRedirectResult()
+          .then((result) => {
+            // The signed-in user info.
+            let user = result.user;
+            console.log(user);
+            if (user == null){
+              const provider = new firebase.auth.GoogleAuthProvider();
+              firebase.auth().signInWithRedirect(provider);
+              return;
+            }
+            
+            my_name = user.multiFactor.user.displayName;
+            myUid = user.multiFactor.user.uid;
+            myAccessToken = user.multiFactor.user.accessToken;
+
+            $("#myDisplayName").html(my_name);
+            $("#loader").hide();
+            
+          }).catch((error) => {
+            // Handle Errors here.
+            var errorCode = error.code;
+            var errorMessage = error.message;
+            // The email of the user's account used.
+            var email = error.email;
+            // The firebase.auth.AuthCredential type that was used.
+            var credential = error.credential;
+            // ...
+            
+          });
+
+        });
+    </script>
+
     <!-- Libraries -->
     <script src="/library/threejs/mythree.js"></script>
     <script src="/library/jquery-3.5.1.min.js"></script>
@@ -329,10 +405,10 @@
       const leaves1Url = "/assets/leaves_1.jpg";
       const cesiumManUrl = "/library/cesium_man/CesiumMan.gltf";
       const nodeUrl = "";
-      const webcamUrl = "";
+      const webcamUrl = "/webcam.html";
       const room_name = "Lobby";
-      let my_name = localStorage.getItem("temporaryName");
-      $("#myDisplayName").html(my_name)
+      // let my_name = localStorage.getItem("temporaryName");
+      // $("#myDisplayName").html(my_name)
       const settingsUrl = '';
       const isLoggedIn = false;
     </script>
@@ -344,7 +420,7 @@
     <script src="/entity.js"></script>
     <script src="/sendPlayerData.js"></script>
     <script src="/socketConnection.js"></script>
-    <script type="text/javascript">
+    <!-- <script type="text/javascript">
       if (my_name == undefined){
         $.ajax({
           url: 'https://randommer.io/api/Name?nameType=fullname&quantity=1',
@@ -360,7 +436,7 @@
             socket.connect();
           }
         })
-      }
+      } -->
     </script>
     <script src="/recordScreen.js"></script>
     <script src="/playerWebRTC.js"></script>
@@ -376,44 +452,7 @@
     <script src="/initObjectsForTesting.js"></script>
     <script src="/myInit.js"></script>
 
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        // const loadEl = document.querySelector('#load');
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
-        // // The Firebase SDK is initialized and available here!
-        //
-        // firebase.auth().onAuthStateChanged(user => { });
-        // firebase.database().ref('/path/to/ref').on('value', snapshot => { });
-        // firebase.firestore().doc('/foo/bar').get().then(() => { });
-        // firebase.functions().httpsCallable('yourFunction')().then(() => { });
-        // firebase.messaging().requestPermission().then(() => { });
-        // firebase.storage().ref('/path/to/ref').getDownloadURL().then(() => { });
-        // firebase.analytics(); // call to activate
-        // firebase.analytics().logEvent('tutorial_completed');
-        // firebase.performance(); // call to activate
-        //
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
-
-        try {
-          let app = firebase.app();
-          let features = [
-            'auth', 
-            'database', 
-            'firestore',
-            'functions',
-            'messaging', 
-            'storage', 
-            'analytics', 
-            'remoteConfig',
-            'performance',
-          ].filter(feature => typeof app[feature] === 'function');
-          console.log(`Firebase SDK loaded with ${features.join(', ')}`);
-        } catch (e) {
-          console.error(e);
-          loadEl.textContent = 'Error loading the Firebase SDK, check the console.';
-        }
-      });
-    </script>
+    
     <script type="text/javascript">
       // start everything...
       console.log("Welcome to the Matrix Universes!")

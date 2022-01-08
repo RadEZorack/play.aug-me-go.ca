@@ -21,7 +21,7 @@ navigator.mediaDevices.enumerateDevices()
     devices.forEach(function(device) {
       console.log(device.kind + ": " + device.label +
                   " id = " + device.deviceId);
-      if(device.kind == "videoinput"){
+      if(device.kind == "videoinput" && videoCount == 0){
         console.log("trying")
         navigator.mediaDevices.getUserMedia({ video: { deviceId: { exact: device.deviceId } } })
           .then(function(stream) {
@@ -38,6 +38,7 @@ navigator.mediaDevices.enumerateDevices()
              console.log(err.name + ": " + err.message);
           })
       }
+      
     });
   })
   .catch(function(err) {

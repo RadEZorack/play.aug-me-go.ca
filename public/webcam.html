@@ -1,0 +1,136 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+   <meta charset="UTF-8" />
+   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+   <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+   <link
+     href="https://fonts.googleapis.com/css?family=Montserrat:300,400,500,700&display=swap"
+     rel="stylesheet"
+   />
+   <style>
+      @font-face {
+        font-family: 'blox';
+        src: url('{% static 'chat/fonts/Blox2.ttf' %}') format("truetype");
+      }
+      .blox {
+        color: rgba(50, 250, 50, 1);
+        text-shadow: 5px 5px 5px rgba(250, 50, 50, 1);
+        font-family: blox;
+      }
+    </style>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+ </head>
+ <body style="margin: 0px;">
+   <div class="video-container" style="width: 300px; height: 300px; background-color: black;">
+     <div class="blox" style="position: absolute; top: 5px; left: 50%; transform: translate(-50%, 0);">{{user_name.lower}}</div>
+     <video autoplay class="remote-video" id="remote-video" style="max-width: 100%; max-height: 100%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></video>
+   </div>
+   <script>
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+
+    const { RTCPeerConnection, RTCSessionDescription, RTCIceCandidate } = window;
+    var configuration = {
+      offerToReceiveAudio: true,
+      offerToReceiveVideo: true,
+      iceServers: [     // Information about ICE servers - Use your own!
+        {
+          'urls':'stun:stun.l.google.com:19302'
+        },{
+          'urls':'stun:stun1.l.google.com:19302'
+        },{
+          'urls':'stun:stun2.l.google.com:19302'
+        },{
+          'urls':'stun:stun3.l.google.com:19302'
+        },{
+          'urls':'stun:stun4.l.google.com:19302'
+        }
+      ]};
+    var peerConnection =  new RTCPeerConnection(configuration);
+
+    peerConnection.ontrack = function(event) {
+      console.log("received media", event)
+     const remoteVideo = document.getElementById("remote-video");
+     remoteVideo.onloadedmetadata = function(e) {
+        remoteVideo.play();
+      };
+     console.log(remoteVideo)
+     if (remoteVideo) {
+       remoteVideo.srcObject = event.streams[0];
+       console.log(remoteVideo, remoteVideo.srcObject)
+
+     }
+    };
+    console.log(peerConnection)
+
+    var node_url = "https://localhost:3000";
+    var socket = io(node_url.replace("https://", "wss://"));
+    socket.on('connect', () => {
+      console.log('webcam socketio connected')
+      callUser()
+    });
+
+
+    async function callUser() {
+      console.log("calling:", urlParams.get('name'))
+      socket.emit("request-media", {
+           to: urlParams.get('name')
+         });
+      //  const offer = await peerConnection.createOffer({offerToReceiveAudio: true,
+      // offerToReceiveVideo: true,});
+      //  await peerConnection.setLocalDescription(new RTCSessionDescription(offer));
+      // console.log("calling user")
+      //  socket.emit("call-user", {
+      //    offer,
+      //    name: urlParams.get('name')
+      //  });
+    }
+
+    socket.on("call-made", async data => {
+      console.log("call-made")
+     await peerConnection.setRemoteDescription(
+       new RTCSessionDescription(data.offer)
+     );
+     peerConnection.onicecandidate = function(event) {
+      console.log("onicecandidate", event)
+      if (event.candidate) {
+        // Send the candidate to the remote peer
+        socket.emit("send-candidate", {
+           candidate: event.candidate,
+           to: data.socket
+         });
+      } else {
+        // All ICE candidates have been sent
+      }
+     }
+     // peerConnection.icegatheringstatechange = function(event) {
+     //  console.log(event)
+     // }
+
+     // if (!isAlreadyCalling) {
+     //   callUser(data.socket);
+     //   isAlreadyCalling = true;
+     // }
+     const answer = await peerConnection.createAnswer();
+     await peerConnection.setLocalDescription(
+       new RTCSessionDescription(answer)
+     );
+     // socket.emit("request-media", {
+     //   to: data.socket
+     // });
+     socket.emit("make-answer", {
+       answer: peerConnection.localDescription,
+       to: data.socket
+     });
+    });
+
+    socket.on("receiving-candidate", data => {
+        console.log("receiving-candidate", data)
+        var candidate = new RTCIceCandidate(data.candidate);
+        peerConnection.addIceCandidate(candidate, function(){console.log('success')}, function(error){console.log('error',error)})
+      })
+   </script>
+ </body>
+</html>
