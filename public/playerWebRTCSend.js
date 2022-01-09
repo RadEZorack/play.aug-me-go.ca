@@ -32,10 +32,11 @@ async function initWebRTC(){
           'urls':'stun:stun4.l.google.com:19302'
         }
       ]};
-    let peerConnection = new RTCPeerConnection(configuration)
+      entities[userTo]["peerConnectionSend"] = new RTCPeerConnection(configuration);
+      let peerConnectionSend = entities[userTo]["peerConnectionSend"]
 
     // Start receiving and sending Ice Candidates
-    peerConnection.onicecandidate = async function(event) {
+    peerConnectionSend.onicecandidate = async function(event) {
       console.log("Send: onicecandidate")
       if (event.candidate) {
         // Send the candidate to the remote peer
@@ -51,10 +52,10 @@ async function initWebRTC(){
     }
 
     // Listen to Negotiate events
-    peerConnection.onnegotiationneeded = async function(){
+    peerConnectionSend.onnegotiationneeded = async function(){
       console.log("Send: renegotiating")
-      peerConnection.createOffer({offerToReceiveAudio: true, offerToReceiveVideo: true,}).then(function(offer) {
-          return peerConnection.setLocalDescription(offer);
+      peerConnectionSend.createOffer({offerToReceiveAudio: true, offerToReceiveVideo: true,}).then(function(offer) {
+          return peerConnectionSend.setLocalDescription(offer);
         })
         .then(async function() {
           // Send new localDescription
@@ -62,7 +63,7 @@ async function initWebRTC(){
             type: "offer",
             userTo: userTo,
             userFrom: userFrom,
-            offer: peerConnection.localDescription
+            offer: peerConnectionSend.localDescription
           })
         })
         .catch(function(err){
@@ -73,10 +74,10 @@ async function initWebRTC(){
     // Send the Video and Audio tracks
     async function sendChannels(){
       navigator.getUserMedia({ video: true, audio: true }, async stream => {
-        console.log(peerConnection, stream, stream.getTracks())
+        console.log(peerConnectionSend, stream, stream.getTracks())
         stream.getTracks().forEach(async track => {
           console.log("sending tracks", track)
-          peerConnection.addTrack(track, stream)
+          peerConnectionSend.addTrack(track, stream)
         });
       }, error => {
           console.warn(error.message);
@@ -89,9 +90,9 @@ async function initWebRTC(){
     
     // Start: RTCPeerConnection.signalingState = stable
     // Create a Local Offer
-    if (peerConnection.iceConnectionState == "new" || peerConnection.iceConnectionState == 'checking'){
-      const offer = await peerConnection.createOffer({offerToReceiveAudio: true, offerToReceiveVideo: true,});
-      await peerConnection.setLocalDescription(
+    if (peerConnectionSend.iceConnectionState == "new" || peerConnectionSend.iceConnectionState == 'checking'){
+      const offer = await peerConnectionSend.createOffer({offerToReceiveAudio: true, offerToReceiveVideo: true,});
+      await peerConnectionSend.setLocalDescription(
         new RTCSessionDescription(offer)
       );
       // RTCPeerConnection.signalingState = have-local-offer
@@ -101,7 +102,7 @@ async function initWebRTC(){
         type: "offer",
         userTo: userTo,
         userFrom: userFrom,
-        offer: peerConnection.localDescription
+        offer: peerConnectionSend.localDescription
       });
     }
 
@@ -112,11 +113,11 @@ async function initWebRTC(){
       message = message.val();
       console.log(message)
       if(message.type == "answer"){
-        console.log("setting answer", peerConnection.iceConnectionState, peerConnection.signalingState)
-        if ((peerConnection.iceConnectionState == 'connected' || peerConnection.iceConnectionState == 'disconnected') && peerConnection.signalingState == "stable"){
+        console.log("setting answer", peerConnectionSend.iceConnectionState, peerConnectionSend.signalingState)
+        if ((peerConnectionSend.iceConnectionState == 'connected' || peerConnectionSend.iceConnectionState == 'disconnected') && peerConnectionSend.signalingState == "stable"){
           console.log("bypass");
         }else{
-          peerConnection.setRemoteDescription(
+          peerConnectionSend.setRemoteDescription(
             new RTCSessionDescription(message.answer)
           ).catch(function(err){
             console.log(err)
@@ -129,14 +130,14 @@ async function initWebRTC(){
         // }).catch(function(err){
         //   console.log("Restarting Ice")
         //   if (finalStop == false){
-        //     peerConnection.restartIce();
+        //     peerConnectionSend.restartIce();
         //   }
         // });
       }
       else if(message.type == "candidate"){
         console.log("receiving-candidate 1")
         const candidate = new RTCIceCandidate(message.candidate);
-        await peerConnection.addIceCandidate(candidate,
+        await peerConnectionSend.addIceCandidate(candidate,
           function(){},
           function(error){console.log('error',error)}
         )

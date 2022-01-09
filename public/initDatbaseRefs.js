@@ -4,10 +4,6 @@ async function initDatbaseRefs(){
     await database.ref('/chunkOutput/123/userOutput').on('child_added', (data) => {
         // Connect webrtc
         const message = data.val();
-
-        if (message.uid != myUid){
-            remove_entity(message)
-        }
         
         if (message.uid != myUid){
             update_entity(message);

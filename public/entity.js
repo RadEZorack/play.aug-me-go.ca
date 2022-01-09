@@ -43,9 +43,13 @@ function update_entity(entity_data){
             <video autoplay class="remote-video" id="remote-video-${entity_key}" style="max-width: 100%; max-height: 100%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></video>
           </div>`
           );
+        
+        // remoteStream = new MediaStream();
+        // document.querySelector(`#remote-video-${entity_key}`).srcObject = remoteStream;
+        
         entities[entity_key] = {
-                    'plane': page.plane,
-                    'cssobject': page.cssObject
+            'plane': page.plane,
+            'cssobject': page.cssObject,
         }
         connectWebRTC(entity_key);
 
@@ -183,6 +187,17 @@ function remove_entity(entity_data){
         window.scene.remove(plane);
         cssObject = entities[entity_key]['cssObject']
         window.cssScene.remove(cssObject);
+
+        if (entities[entity_key]['remoteStream']) {
+            entities[entity_key]['remoteStream'].getTracks().forEach(track => track.stop());
+        }
+    
+        // if (peerConnection) {
+        //     peerConnection.close();
+        // }
+
+        // delete entities[entity_key]["peerConnectionSend"]
+        // delete entities[entity_key]["peerConnectionReceive"]
 
         delete entities[entity_key]
     }
