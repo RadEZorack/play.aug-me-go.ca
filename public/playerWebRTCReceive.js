@@ -26,7 +26,7 @@ async function connectWebRTC(userTo){
           'urls':'stun:stun4.l.google.com:19302'
         }
       ]};
-  let peerConnection = new RTCPeerConnection(configuration);
+  let peerConnectionReceive = new RTCPeerConnection(configuration);
 
   // Start receiving and sending Ice Candidates
   // peerConnection.onicecandidate = async function(event) {
@@ -65,7 +65,7 @@ async function connectWebRTC(userTo){
   // };
 
   // Recieve the video and audio
-  peerConnection.ontrack = function(event) {
+  peerConnectionReceive.ontrack = function(event) {
       console.log("received media", event)
      const remoteVideo = document.getElementById(`remote-video-${userTo}`);
      remoteVideo.onloadedmetadata = function(e) {
@@ -86,13 +86,13 @@ async function connectWebRTC(userTo){
     console.log(message)
     if (message.type == "offer"){
       console.log("setting offer")
-      await peerConnection.setRemoteDescription(
+      await peerConnectionReceive.setRemoteDescription(
           new RTCSessionDescription(message.offer)
       );
 
       console.log("creating answer")
-      const answer = await peerConnection.createAnswer();
-      await peerConnection.setLocalDescription(
+      const answer = await peerConnectionReceive.createAnswer();
+      await peerConnectionReceive.setLocalDescription(
           new RTCSessionDescription(answer)
       );
       console.log("sending answer")
@@ -100,16 +100,16 @@ async function connectWebRTC(userTo){
           type: "answer",
           userTo: userTo,
           userFrom: userFrom,
-          answer: peerConnection.localDescription,
+          answer: peerConnectionReceive.localDescription,
       });
     }else if(message.type == "candidate"){
       console.log("receiving-candidate 2")
       const candidate = new RTCIceCandidate(message.candidate);
-      peerConnection.addIceCandidate(candidate,
+      peerConnectionReceive.addIceCandidate(candidate,
         function(){},
         function(error){console.log('error',error)}
       )
-    } 
+    }
   } 
   
   // Cunch qued messages

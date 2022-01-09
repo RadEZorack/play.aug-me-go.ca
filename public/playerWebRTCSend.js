@@ -71,43 +71,67 @@ async function initWebRTC(){
     };
       
     // Send the Video and Audio tracks
-    navigator.getUserMedia({ video: true, audio: true }, async stream => {
-      console.log(peerConnection, stream, stream.getTracks())
-      stream.getTracks().forEach(async track => {
-        console.log("sending tracks", track)
-        peerConnection.addTrack(track, stream)
-      });
-    }, error => {
-        console.warn(error.message);
-      }
-    );
+    async function sendChannels(){
+      navigator.getUserMedia({ video: true, audio: true }, async stream => {
+        console.log(peerConnection, stream, stream.getTracks())
+        stream.getTracks().forEach(async track => {
+          console.log("sending tracks", track)
+          peerConnection.addTrack(track, stream)
+        });
+      }, error => {
+          console.warn(error.message);
+        }
+      );
+    }
+
+    sendChannels();
+    
     
     // Start: RTCPeerConnection.signalingState = stable
     // Create a Local Offer
-    const offer = await peerConnection.createOffer({offerToReceiveAudio: true, offerToReceiveVideo: true,});
-    await peerConnection.setLocalDescription(
-      new RTCSessionDescription(offer)
-    );
-    // RTCPeerConnection.signalingState = have-local-offer
-
-    // Send new localDescription
-    database.ref(`/userTo/${userTo}/userFrom/${userFrom}/messages/${Date.now()}`).update({
-      type: "offer",
-      userTo: userTo,
-      userFrom: userFrom,
-      offer: peerConnection.localDescription
-    });
+    if (peerConnection.iceConnectionState == "new" || peerConnection.iceConnectionState == 'checking'){
+      const offer = await peerConnection.createOffer({offerToReceiveAudio: true, offerToReceiveVideo: true,});
+      await peerConnection.setLocalDescription(
+        new RTCSessionDescription(offer)
+      );
+      // RTCPeerConnection.signalingState = have-local-offer
+    
+      // Send new localDescription
+      database.ref(`/userTo/${userTo}/userFrom/${userFrom}/messages/${Date.now()}`).update({
+        type: "offer",
+        userTo: userTo,
+        userFrom: userFrom,
+        offer: peerConnection.localDescription
+      });
+    }
 
     // Crunch messages
+    // let finalStop = false;
     async function crunchMessages(message){
       console.log("message 1")
       message = message.val();
       console.log(message)
       if(message.type == "answer"){
-        console.log("setting answer")
-        peerConnection.setRemoteDescription(
-          new RTCSessionDescription(message.answer)
-        );
+        console.log("setting answer", peerConnection.iceConnectionState, peerConnection.signalingState)
+        if ((peerConnection.iceConnectionState == 'connected' || peerConnection.iceConnectionState == 'disconnected') && peerConnection.signalingState == "stable"){
+          console.log("bypass");
+        }else{
+          peerConnection.setRemoteDescription(
+            new RTCSessionDescription(message.answer)
+          ).catch(function(err){
+            console.log(err)
+          });
+        }
+        console.log("Final Success!")
+        // .then(function(){
+        //   finalStop = true;
+        //   console.log("Final Success!")
+        // }).catch(function(err){
+        //   console.log("Restarting Ice")
+        //   if (finalStop == false){
+        //     peerConnection.restartIce();
+        //   }
+        // });
       }
       else if(message.type == "candidate"){
         console.log("receiving-candidate 1")
