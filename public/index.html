@@ -311,6 +311,8 @@
       let myAccessToken = null;
       let database = null;
       let functions = null;
+      let entities = {};
+      const { RTCPeerConnection, RTCSessionDescription, RTCIceCandidate } = window;
       document.addEventListener('DOMContentLoaded', function() {
         // const loadEl = document.querySelector('#load');
         // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
@@ -447,7 +449,8 @@
       } -->
     </script>
     <script src="/recordScreen.js"></script>
-    <script src="/playerWebRTC.js"></script>
+    <script src="/playerWebRTCSend.js"></script>
+    <script src="/playerWebRTCReceive.js"></script>
     <script src="/raycaster.js"></script>
     <script src="/controls.js"></script>
     <script src="/onWindowResize.js"></script>

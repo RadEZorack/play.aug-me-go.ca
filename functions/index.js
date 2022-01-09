@@ -38,6 +38,7 @@ exports.usermoderator = functions.database.ref('/userInput/{Uid}').onWrite((chan
   // TODO: implement chunking
   if (after == false){
     admin.database().ref('chunkOutput/123/userOutput/'+before.uid).remove();
+    // admin.database().ref(`/userTo/${before.uid}`).remove;
   }else{
     admin.database().ref('chunkOutput/123/userOutput/'+after.uid).set(after);
   }
