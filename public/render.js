@@ -90,7 +90,7 @@ function render() {
     let my_player = entities[myUid]['gltf'].scene;
     magnitude = Math.sqrt(Math.pow(my_player.position.x - window.camera.position.x, 2) + Math.pow(my_player.position.z - window.camera.position.z, 2))
     
-    if(magnitude >= 0.1){
+    if(magnitude >= 5){
       my_player.position.x += 0.0009 * delta * (window.camera.position.x - my_player.position.x) / magnitude;
       my_player.position.z += 0.0009 * delta * (window.camera.position.z - my_player.position.z) / magnitude;
     }
@@ -115,7 +115,7 @@ function render() {
     if(shouldFall == true){
       my_player.position.y -= 0.0009 * delta;
     }
-    console.log(my_player.position.y);
+    // console.log(my_player.position.y);
 
     
 
