@@ -469,7 +469,7 @@ function initObjectsForTesting() {
       1000,
       1200,
       0.002,
-      new THREE.Vector3(3.2, -0.5, -2),
+      new THREE.Vector3(0, 0.5, -4),
       new THREE.Vector3(0, 0, 0),
       "https://courseware.cemc.uwaterloo.ca/",
       ""

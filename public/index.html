@@ -118,7 +118,7 @@
   </head>
   <body>
     <div id="hud">
-      <div id="buttons" style="position: absolute; top: 6px; left: 86px; z-index: 20;">
+      <!-- <div id="buttons" style="position: absolute; top: 6px; left: 86px; z-index: 20;">
         <button class="mdc-button mdc-button--raised" id="cameraBtn">
             <i class="material-icons mdc-button__icon" aria-hidden="true">perm_camera_mic</i>
             <span class="mdc-button__label">Open camera & microphone</span>
@@ -136,7 +136,7 @@
         <button class="mdc-button mdc-button--raised" disabled id="hangupBtn">
             <i class="material-icons mdc-button__icon" aria-hidden="true">close</i>
             <span class="mdc-button__label">Hangup</span>
-        </button>
+        </button> -->
     </div>
       <div id="loader" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 100; font-size: 100px; outline-width: medium; outline-color: white; outline-style: dotted; background-color: white;">Loading...</div>
       <!-- <span class="blox" style="font-size: 2em; text-align: center; position: absolute; top: 5px; left: 50%; transform: translate(-50%, 0); z-index: 10;">TrIxEl VeRsE</span>
@@ -394,7 +394,7 @@
             $("#myDisplayName").html(my_name);
             database = firebase.database();
             functions = firebase.functions();
-            send_message_que();
+            start_message_que();
             initDatbaseRefs();
             // initWebRTC();
             $("#loader").hide();
