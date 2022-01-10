@@ -23,9 +23,9 @@ navigator.mediaDevices.enumerateDevices()
                   " id = " + device.deviceId);
       if(device.kind == "videoinput" && videoCount == 0){
         console.log("trying")
+        videoCount += 1;
         navigator.mediaDevices.getUserMedia({ video: { deviceId: { exact: device.deviceId } } })
           .then(function(stream) {
-            videoCount += 1;
             const localVideo = document.getElementById("local-video-"+videoCount.toString());
             console.log(localVideo);
             localVideo.onloadedmetadata = function(e) {

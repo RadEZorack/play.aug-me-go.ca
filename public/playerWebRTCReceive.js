@@ -47,22 +47,7 @@ async function connectWebRTC(userTo){
     }
   }
 
-  // Listen to Negotiate events
-  peerConnection.onnegotiationneeded = async function(){
-    console.log("Send: renegotiating")
-    peerConnection.createOffer({offerToReceiveAudio: true, offerToReceiveVideo: true,}).then(function(offer) {
-        return peerConnection.setLocalDescription(offer);
-      })
-      .then(async function() {
-        // Send new localDescription
-        database.ref(`/userTo/${userTo}/userFrom/${userFrom}`).update({
-          offer: peerConnection.localDescription
-        })
-      })
-      .catch(function(err){
-        console.log(err)
-      });
-  };
+  
 
   // Recieve the video and audio
   peerConnection.ontrack = function(event) {
@@ -71,35 +56,46 @@ async function connectWebRTC(userTo){
      remoteVideo.onloadedmetadata = function(e) {
         remoteVideo.play();
       };
-     console.log(remoteVideo)
+     console.log("remoteVideo")
      if (remoteVideo) {
        remoteVideo.srcObject = event.streams[0];
        console.log(remoteVideo, remoteVideo.srcObject)
      }
   };
 
-  navigator.getUserMedia({ video: true, audio: true }, async stream => {
-    console.log(peerConnection, stream, stream.getTracks())
-    stream.getTracks().forEach(async track => {
-      console.log("sending tracks", track)
-      peerConnection.addTrack(track, stream)
-    });
-  }, error => {
-      console.warn(error.message);
-    }
-  );
+  
 
   // Start: RTCPeerConnection.signalingState = stable
   // Create a Local Offer
-  if(userFrom < userTo){
+  let getOffers = userFrom < userTo
+  await database.ref(`/userTo/${userFrom}/userFrom/${userTo}`)
+    .get().then((snapshot) => {
+        if (snapshot.val() != null && snapshot.val().ready == true) {getOffers = false;}
+      });
+  await database.ref(`/userTo/${userTo}/userFrom/${userFrom}`)
+      .get().then((snapshot) => {
+          if (snapshot.val() != null && snapshot.val().ready == true) {getOffers = true;}
+        });
+  console.log('getOffers', userFrom, getOffers)
+  if(getOffers == true){
     console.log("getting offers")
     database.ref(`/userTo/${userFrom}/userFrom/${userTo}/offer`).on('value', async (data) => {
       offer = data.val()
-      console.log("offer", offer)
+      console.log("offer")
       if(offer != null){
         console.log("setting offer")
         await peerConnection.setRemoteDescription(
             new RTCSessionDescription(offer)
+        );
+
+        navigator.getUserMedia({ video: true, audio: true }, async stream => {
+          stream.getTracks().forEach(async track => {
+            console.log("sending tracks", track)
+            peerConnection.addTrack(track, stream)
+          });
+        }, error => {
+            console.warn(error.message);
+          }
         );
 
         console.log("creating answer")
@@ -114,26 +110,54 @@ async function connectWebRTC(userTo){
       }
     })
   }else{
+    // database.ref(`/userTo/${userTo}/userFrom/${userFrom}`).update({get: true})
     console.log("sending offers")
+    // Listen to Negotiate events
+    peerConnection.onnegotiationneeded = async function(){
+      console.log("Send: renegotiating")
+      const offer = await peerConnection.createOffer({offerToReceiveAudio: true, offerToReceiveVideo: true,});
+      await peerConnection.setLocalDescription(
+        new RTCSessionDescription(offer)
+      );
+      // Send new localDescription offer
+      database.ref(`/userTo/${userTo}/userFrom/${userFrom}`).update({
+        offer: peerConnection.localDescription
+      });
+    };
+
+
+    // peerConnection.restartIce();
+
     const offer = await peerConnection.createOffer({offerToReceiveAudio: true, offerToReceiveVideo: true,});
     await peerConnection.setLocalDescription(
       new RTCSessionDescription(offer)
     );
-    // RTCPeerConnection.signalingState = have-local-offer
-
+    console.log("here")
     // Send new localDescription offer
     database.ref(`/userTo/${userTo}/userFrom/${userFrom}`).update({
       offer: peerConnection.localDescription
     });
 
+    navigator.getUserMedia({ video: true, audio: true }, async stream => {
+      stream.getTracks().forEach(async track => {
+        console.log("sending tracks", track)
+        peerConnection.addTrack(track, stream)
+      });
+    }, error => {
+        console.warn(error.message);
+      }
+    );
+
     database.ref(`/userTo/${userFrom}/userFrom/${userTo}/answer`).on('value', async (data) => {
       answer = data.val()
-      console.log('answer', answer)
-      peerConnection.setRemoteDescription(
-        new RTCSessionDescription(answer)
-      ).catch(function(err){
-        console.log(err)
-      })
+      console.log('got answer')
+      if(answer != null){
+        peerConnection.setRemoteDescription(
+          new RTCSessionDescription(answer)
+        ).catch(function(err){
+          console.log(err)
+        })
+      }
     })
   }
 
@@ -143,7 +167,7 @@ async function connectWebRTC(userTo){
     message = message.val();
     console.log(message)
     if(message.type == "candidate"){
-      console.log("receiving-candidate")
+      console.log("receiving-candidate", message.candidate)
       const candidate = new RTCIceCandidate(message.candidate);
       peerConnection.addIceCandidate(candidate,
         function(){},

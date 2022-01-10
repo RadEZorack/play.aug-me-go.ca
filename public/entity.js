@@ -183,13 +183,22 @@ function remove_entity(entity_data){
     if (entities[entity_key]){
         gltf = entities[entity_key]['gltf']
         scene.remove( gltf.scene );
+
+        const remoteVideo = document.getElementById(`remote-video-${entity_key}`);
+        try{
+            remoteVideo.srcObject.getTracks().forEach(track => track.stop());
+        }catch (e){
+            console.log(e);
+        }
+        
+
         plane = entities[entity_key]['plane']
         window.scene.remove(plane);
         cssObject = entities[entity_key]['cssObject']
         window.cssScene.remove(cssObject);
 
-        if (entities[entity_key]['remoteStream']) {
-            entities[entity_key]['remoteStream'].getTracks().forEach(track => track.stop());
+        if (entities[entity_key]['peerConnection']) {
+            entities[entity_key]['peerConnection'].close();
         }
     
         // if (peerConnection) {
