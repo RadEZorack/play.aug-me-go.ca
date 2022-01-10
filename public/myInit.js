@@ -37,6 +37,8 @@ function myInit() {
     10000
   );
 
+  window.camera.position.y = 2;
+
 
   window.scene = new THREE.Scene();
   window.objectScene = new THREE.Scene();

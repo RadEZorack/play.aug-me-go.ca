@@ -150,28 +150,30 @@ function update_entity(entity_data){
         return
     }else{
         // console.log("entity moving", entity_data, entities)
-        const gltf = entities[entity_key]['gltf']
+        if (entity_key != myUid){
+            const gltf = entities[entity_key]['gltf']
 
-        gltf.scene.position.x = px
-        gltf.scene.position.y = py
-        gltf.scene.position.z = pz
+            gltf.scene.position.x = px
+            gltf.scene.position.y = py
+            gltf.scene.position.z = pz
 
-        // const gltfEuler = new THREE.Euler(0, 0, 0, "YXZ")
+            // const gltfEuler = new THREE.Euler(0, 0, 0, "YXZ")
 
-        gltf.scene.rotation.x = prx
-        gltf.scene.rotation.y = pry;
-        gltf.scene.rotation.z = prz
+            gltf.scene.rotation.x = prx
+            gltf.scene.rotation.y = pry;
+            gltf.scene.rotation.z = prz
 
-        const cone1 = entities[entity_key]['cone1']
+            const cone1 = entities[entity_key]['cone1']
 
-        cone1.position.x = px
-        cone1.position.y = py + 2;
-        cone1.position.z = pz
+            cone1.position.x = px
+            cone1.position.y = py + 2;
+            cone1.position.z = pz
 
-        cone1.rotation.x = prx
-        cone1.rotation.y = pry;
-        cone1.rotation.z = prz
-        cone1.rotation.z += Math.PI;
+            // cone1.rotation.x = prx
+            // cone1.rotation.y = pry;
+            // cone1.rotation.z = prz
+            cone1.rotation.z = Math.PI;
+        }
 
         // flip around
         // gltfEuler.setFromQuaternion(gltf.scene.quaternion)
@@ -187,7 +189,6 @@ function update_entity(entity_data){
         const cone2 = entities[entity_key]['cone2']
 
         if (plane != undefined && cssObject != undefined && cone2 != undefined){
-            console.log("updating position")
             plane.position.x = x
             plane.position.y = y
             plane.position.z = z
@@ -253,6 +254,10 @@ function remove_entity(entity_data){
         window.scene.remove(plane);
         cssObject = entities[entity_key]['cssObject']
         window.cssScene.remove(cssObject);
+        cone1 = entities[entity_key]['cone1']
+        window.scene.remove(cone1);
+        cone2 = entities[entity_key]['cone2']
+        window.scene.remove(cone2);
 
         if (entities[entity_key]['peerConnection']) {
             entities[entity_key]['peerConnection'].close();

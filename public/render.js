@@ -86,6 +86,60 @@ function render() {
   // window.playerY -= deltaY * 256;
   window.camera.position.y -= deltaY;
 
+  if(entities[myUid] != undefined && entities[myUid]['gltf'] != undefined){
+    let my_player = entities[myUid]['gltf'].scene;
+    magnitude = Math.sqrt(Math.pow(my_player.position.x - window.camera.position.x, 2) + Math.pow(my_player.position.z - window.camera.position.z, 2))
+    
+    if(magnitude >= 0.1){
+      my_player.position.x += 0.0009 * delta * (window.camera.position.x - my_player.position.x) / magnitude;
+      my_player.position.z += 0.0009 * delta * (window.camera.position.z - my_player.position.z) / magnitude;
+    }
+
+    const raycaster = new THREE.Raycaster(
+                        new THREE.Vector3(my_player.position.x, my_player.position.y + 2, my_player.position.z),
+                        new THREE.Vector3(0, -1, 0),
+                        0,
+                        2
+                      );
+    
+    const intersects = raycaster.intersectObjects( Array.from(window.scene.children), true );
+
+    let shouldFall = true;
+    for(let i = 0; i < intersects.length; i++) {
+      if (intersects[ i ].object.name != "Cesium_Man"){
+        my_player.position.y += 2 - intersects[ i ].distance;
+        shouldFall = false;
+        break;
+      }
+    }
+    if(shouldFall == true){
+      my_player.position.y -= 0.0009 * delta;
+    }
+    console.log(my_player.position.y);
+
+    
+
+    my_player.lookAt(window.camera.position);
+    // my_player.rotation.x = 0
+    // plane.rotation.y = ry;
+    // plane.rotation.y += Math.PI;
+    // my_player.rotation.z = 0
+
+    const gltfEuler = new THREE.Euler(0, 0, 0, "YXZ")
+    gltfEuler.setFromQuaternion(my_player.quaternion)
+    gltfEuler.x = 0;
+    // gltfEuler.y += Math.PI;
+    gltfEuler.z = 0;
+    my_player.quaternion.setFromEuler(gltfEuler)
+
+    entities[myUid]['cone1'].position.x = my_player.position.x;
+    entities[myUid]['cone1'].position.y = my_player.position.y + 2;
+    entities[myUid]['cone1'].position.z = my_player.position.z;
+
+    entities[myUid]['cone1'].rotation.z = Math.PI;
+    
+  }
+
   // Zoom
   if (playerK - playerK * deltaK > 2 ** 20) {
     deltaK = 0;
