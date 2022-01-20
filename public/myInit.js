@@ -147,6 +147,8 @@ function myInit() {
   //   )
   // );
 
+  
+
   console.log("finish init");
 
   // sensor.start();
@@ -181,6 +183,10 @@ function myInit() {
   // });
 
   redrawObjects();
+  $("#map").ready(function(){
+    startMapBox();
+  })
+  
 
   // sendPlayerData()
 

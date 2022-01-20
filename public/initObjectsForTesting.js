@@ -478,6 +478,19 @@ function initObjectsForTesting() {
 
   // cssObjectsArray.push(
   //   create3dPage(
+  //     500,
+  //     500,
+  //     0.01,
+  //     new THREE.Vector3(0, 0, -9),
+  //     new THREE.Vector3(0, 0, 0),
+  //     "",
+  //     "<div id='map' style='width:500px; height:500px;'></div>"
+  //   )
+  // );
+  
+
+  // cssObjectsArray.push(
+  //   create3dPage(
   //     1000,
   //     1200,
   //     0.002,
