@@ -466,8 +466,8 @@ function initObjectsForTesting() {
 
   cssObjectsArray.push(
     create3dPage(
-      500,
-      600,
+      1000,
+      1200,
       0.004,
       new THREE.Vector3(0, 0.5, -4),
       new THREE.Vector3(0, 0, 0),
