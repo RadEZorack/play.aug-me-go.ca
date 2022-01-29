@@ -466,9 +466,9 @@ function initObjectsForTesting() {
 
   cssObjectsArray.push(
     create3dPage(
-      1000,
-      1200,
-      0.002,
+      500,
+      600,
+      0.004,
       new THREE.Vector3(0, 0.5, -4),
       new THREE.Vector3(0, 0, 0),
       "https://courseware.cemc.uwaterloo.ca/",
